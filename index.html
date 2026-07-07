@@ -702,13 +702,13 @@ footer p{font-size:12px;color:var(--muted)}
       </div>
       <div class="reveal">
         <div class="contact-form">
-          <div class="form-group"><label class="form-label">YOUR NAME</label><input type="text" class="form-input" placeholder="Jane Doe"></div>
-          <div class="form-group"><label class="form-label">YOUR EMAIL</label><input type="email" class="form-input" placeholder="jane@company.com"></div>
-          <div class="form-group"><label class="form-label">MESSAGE</label><textarea class="form-textarea" placeholder="I'd love to discuss a data analyst role..."></textarea></div>
+          <div class="form-group"><label class="form-label">YOUR NAME</label><input id="fc-name" type="text" class="form-input" placeholder="Jane Doe" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">YOUR EMAIL</label><input id="fc-email" type="email" class="form-input" placeholder="jane@company.com" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">MESSAGE</label><textarea id="fc-msg" class="form-textarea" placeholder="I'd love to discuss a data analyst role..."></textarea></div>
           <button class="form-submit" id="sendBtn">Send Message →</button>
-          <p style="font-size:11px;color:var(--muted2);margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6;">
-            📬 Messages go directly to <span style="color:var(--accent3)">omnaringe01@gmail.com</span><br>
-            For instant delivery, set up <a href="https://emailjs.com" target="_blank" style="color:var(--accent);text-decoration:none;">EmailJS</a> with your public key above.
+          <div id="form-status" style="margin-top:10px;font-size:13px;font-family:'DM Mono',monospace;display:none"></div>
+          <p style="font-size:11px;color:var(--muted2);margin-top:10px;font-family:'DM Mono',monospace;line-height:1.7;">
+            📬 Messages deliver directly to <span style="color:var(--accent3)">omnaringe01@gmail.com</span>
           </p>
         </div>
       </div>
@@ -820,60 +820,77 @@ function resumeAction(e){
 document.getElementById('resumeBtn').addEventListener('click',resumeAction);
 document.getElementById('resumeBtn2').addEventListener('click',resumeAction);
 
-// ── FORM ──
-// EmailJS - sends to omnaringe01@gmail.com
-(function(){
-  const script=document.createElement('script');
-  script.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-  script.onload=function(){
-    emailjs.init('Sszg9YeYYgiCA408y'); // ← replace with your EmailJS public key
-  };
-  document.head.appendChild(script);
-})();
+// ── CONTACT FORM — Web3Forms (direct to Gmail, no redirect) ──
+document.getElementById('sendBtn').addEventListener('click', async function(){
+  const btn = this;
+  const name    = document.getElementById('fc-name').value.trim();
+  const email   = document.getElementById('fc-email').value.trim();
+  const msg     = document.getElementById('fc-msg').value.trim();
+  const status  = document.getElementById('form-status');
 
-document.getElementById('sendBtn').addEventListener('click',function(){
-  const btn=this;
-  const nameEl=document.querySelector('.form-input[placeholder="Jane Doe"]');
-  const emailEl=document.querySelector('.form-input[placeholder="jane@company.com"]');
-  const msgEl=document.querySelector('.form-textarea');
-  const name=nameEl.value.trim();
-  const email=emailEl.value.trim();
-  const msg=msgEl.value.trim();
-
-  if(!name||!email||!msg){
-    btn.textContent='⚠ Fill all fields!';
-    btn.style.background='linear-gradient(135deg,#ff6b6b,#ee5a24)';
-    setTimeout(()=>{btn.textContent='Send Message →';btn.style.background='';},2000);
+  // Validation
+  if(!name || !email || !msg){
+    btn.textContent = '⚠ Fill all fields!';
+    btn.style.background = 'linear-gradient(135deg,#ff6b6b,#ee5a24)';
+    setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; }, 2200);
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){
+    btn.textContent = '⚠ Invalid email!';
+    btn.style.background = 'linear-gradient(135deg,#ff6b6b,#ee5a24)';
+    setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; }, 2200);
     return;
   }
 
-  btn.textContent='Sending...';btn.style.opacity='0.75';btn.disabled=true;
+  // Sending state
+  btn.textContent = 'Sending...';
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+  status.style.display = 'none';
 
-  // Method 1: EmailJS (needs account setup at emailjs.com)
-  if(typeof emailjs!=='undefined' && emailjs.send){
-    emailjs.send('YOUR_SERVICE_ID','YOUR_TEMPLATE_ID',{
-      from_name:name,
-      from_email:email,
-      message:msg,
-      to_email:'omnaringe01@gmail.com'
-    }).then(()=>{
-      btn.textContent='✓ Message Sent!';btn.style.opacity='1';btn.disabled=false;
-      btn.style.background='linear-gradient(135deg,#00e5b8,#00b894)';
-      nameEl.value='';emailEl.value='';msgEl.value='';
-    }).catch(()=>{ mailtoFallback(name,email,msg,btn); });
-  } else {
-    // Method 2: mailto fallback (opens Gmail in browser)
-    mailtoFallback(name,email,msg,btn);
+  try {
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: 'a2f7d3f4-1c27-4609-8b2e-f0ccfa4a6991',   // ← replace once (see below)
+        subject: '📩 Portfolio Message from ' + name,
+        from_name: name,
+        email: email,
+        message: msg,
+        botcheck: ''
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      btn.textContent = '✓ Message Sent!';
+      btn.style.opacity = '1';
+      btn.style.background = 'linear-gradient(135deg,#00e5b8,#00b894)';
+      btn.disabled = false;
+      document.getElementById('fc-name').value  = '';
+      document.getElementById('fc-email').value = '';
+      document.getElementById('fc-msg').value   = '';
+      status.innerHTML  = '✅ Thank you! Om will get back to you soon.';
+      status.style.color = 'var(--accent3)';
+      status.style.display = 'block';
+      setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; status.style.display='none'; }, 5000);
+    } else {
+      throw new Error('Failed');
+    }
+  } catch(err) {
+    btn.textContent = '✕ Failed — try again';
+    btn.style.opacity = '1';
+    btn.style.background = 'linear-gradient(135deg,#ff6b6b,#ee5a24)';
+    btn.disabled = false;
+    status.innerHTML  = '❌ Something went wrong. Please email directly: <a href="mailto:omnaringe01@gmail.com" style="color:var(--accent)">omnaringe01@gmail.com</a>';
+    status.style.color = 'var(--accent2)';
+    status.style.display = 'block';
+    setTimeout(()=>{ btn.textContent='Send Message →'; btn.style.background=''; }, 3000);
   }
 });
-
-function mailtoFallback(name,email,msg,btn){
-  const subject=encodeURIComponent('Portfolio Contact from '+name);
-  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\n\nMessage:\n'+msg);
-  window.open('mailto:omnaringe01@gmail.com?subject='+subject+'&body='+body,'_blank');
-  btn.textContent='✓ Opening Gmail...';btn.style.opacity='1';btn.disabled=false;
-  btn.style.background='linear-gradient(135deg,#00e5b8,#00b894)';
-}
 
 // ── NAV ACTIVE ──
 const secs=document.querySelectorAll('section[id]');
