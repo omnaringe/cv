@@ -484,11 +484,7 @@ footer p{font-size:12px;color:var(--muted)}
         <a href="https://github.com/omnaringe" target="_blank" class="btn-icon-link" title="GitHub" style="width:44px;height:44px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);color:var(--text);font-size:19px;text-decoration:none;cursor:none;transition:transform 0.25s,box-shadow 0.25s;">⌥</a>
       </div>
 
-      <div class="hero-stats">
-        <div class="stat-item"><div class="stat-num">3<em>+</em></div><div class="stat-label">PROJECTS</div></div>
-        <div class="stat-item"><div class="stat-num">1<em>+</em></div><div class="stat-label">CERTIFICATION</div></div>
-        <div class="stat-item"><div class="stat-num">1<em>+</em></div><div class="stat-label">RESEARCH PUBLICATION</div></div>
-      </div>
+
     </div>
 
     <!-- RIGHT IMAGE -->
@@ -703,7 +699,7 @@ footer p{font-size:12px;color:var(--muted)}
       <div class="reveal">
         <div class="contact-form">
           <div class="form-group"><label class="form-label">YOUR NAME</label><input id="fc-name" type="text" class="form-input" placeholder="Om Naringe" autocomplete="off"></div>
-          <div class="form-group"><label class="form-label">YOUR EMAIL</label><input id="fc-email" type="email" class="form-input" placeholder="omnaringe01@gmail.com" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">YOUR EMAIL</label><input id="fc-email" type="email" class="form-input" placeholder="om@company.com" autocomplete="off"></div>
           <div class="form-group"><label class="form-label">MESSAGE</label><textarea id="fc-msg" class="form-textarea" placeholder="I'd love to discuss a data analyst role..."></textarea></div>
           <button class="form-submit" id="sendBtn">Send Message →</button>
           <div id="form-status" style="margin-top:10px;font-size:13px;font-family:'DM Mono',monospace;display:none"></div>
@@ -901,5 +897,714 @@ window.addEventListener('scroll',()=>{
   navAs.forEach(a=>{a.style.color=a.getAttribute('href')==='#'+active?'var(--text)':''});
 },{ passive:true });
 </script>
+
+<!-- ── AI CHAT WIDGET ── -->
+
+
+
+
+<!-- ============ OM AI ASSISTANT ============ -->
+<style>
+  #ai-launcher {
+    position:fixed; bottom:28px; right:28px; z-index:9998;
+    width:58px; height:58px; border-radius:50%;
+    background:linear-gradient(135deg,#7c6fff,#ff6b9d);
+    border:none; cursor:pointer !important;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 32px rgba(124,111,255,0.45);
+    transition:transform .3s,box-shadow .3s;
+    animation:launcherPulse 3s ease-in-out infinite;
+  }
+  @keyframes launcherPulse{
+    0%,100%{box-shadow:0 8px 32px rgba(124,111,255,0.45),0 0 0 0 rgba(124,111,255,0.25)}
+    50%{box-shadow:0 8px 32px rgba(124,111,255,0.45),0 0 0 12px rgba(124,111,255,0)}
+  }
+  #ai-launcher:hover{ transform:scale(1.1) translateY(-2px); box-shadow:0 14px 40px rgba(124,111,255,0.6); }
+  #ai-launcher svg{ width:24px; height:24px; }
+  #ai-launcher .pulse{
+    position:absolute; top:-2px; right:-2px;
+    width:13px; height:13px; border-radius:50%;
+    background:#00e5b8; border:2px solid #07070e;
+    animation:dotBlink 2s infinite;
+  }
+  @keyframes dotBlink{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+
+  /* ── PANEL ── */
+  #ai-panel {
+    position:fixed; bottom:104px; right:28px; z-index:9999;
+    width:380px; max-width:calc(100vw - 40px);
+    height:570px; max-height:calc(100vh - 150px);
+    background:#0d0d1a;
+    border:1px solid rgba(124,111,255,0.18);
+    border-radius:18px; overflow:hidden;
+    display:flex; flex-direction:column;
+    box-shadow:0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,111,255,0.08);
+    opacity:0; transform:translateY(18px) scale(0.96);
+    pointer-events:none;
+    transition:opacity .3s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  #ai-panel.open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+
+  /* ── HEADER ── */
+  .ai-header{
+    padding:16px 18px;
+    background:linear-gradient(135deg,rgba(124,111,255,0.1),rgba(255,107,157,0.05));
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    display:flex; align-items:center; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .ai-header::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 80% 50%, rgba(124,111,255,0.08), transparent 60%);
+  }
+  .ai-avatar{
+    width:40px; height:40px; border-radius:12px; flex-shrink:0;
+    background:linear-gradient(135deg,#7c6fff,#ff6b9d);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:18px;
+    color:#fff; position:relative; z-index:1;
+    box-shadow:0 4px 16px rgba(124,111,255,0.4);
+  }
+  .ai-header-text{ flex:1; min-width:0; position:relative; z-index:1; }
+  .ai-header-text .name{
+    font-family:'Syne',sans-serif; font-weight:700; font-size:15px;
+    color:#eeeef8; line-height:1.2; letter-spacing:-0.3px;
+  }
+  .ai-header-text .status{
+    font-family:'DM Mono',monospace; font-size:10.5px;
+    color:#00e5b8; letter-spacing:.06em; margin-top:3px;
+    display:flex; align-items:center; gap:5px;
+  }
+  .status .dot{
+    width:6px; height:6px; border-radius:50%; background:#00e5b8;
+    box-shadow:0 0 6px rgba(0,229,184,0.6);
+    animation:dotBlink 2s infinite;
+  }
+  .ai-close{
+    background:none; border:none; color:#8080a8; cursor:pointer !important;
+    width:30px; height:30px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s,color .2s; position:relative; z-index:1;
+  }
+  .ai-close:hover{ background:rgba(255,255,255,0.06); color:#eeeef8; }
+
+  /* ── MESSAGES ── */
+  .ai-messages{
+    flex:1; overflow-y:auto; padding:16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    scrollbar-width:thin; scrollbar-color:rgba(124,111,255,0.3) transparent;
+  }
+  .ai-messages::-webkit-scrollbar{ width:4px; }
+  .ai-messages::-webkit-scrollbar-thumb{ background:rgba(124,111,255,0.3); border-radius:2px; }
+
+  .msg-row{ display:flex; flex-direction:column; }
+  .msg-row.user{ align-items:flex-end; }
+  .msg-row.bot{ align-items:flex-start; }
+
+  .msg{
+    max-width:86%; font-size:13.5px; line-height:1.6;
+    padding:10px 14px; border-radius:14px;
+    animation:msgRise .25s ease;
+    font-family:'Space Grotesk',sans-serif;
+  }
+  @keyframes msgRise{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .msg.bot{
+    background:#161625; border:1px solid rgba(255,255,255,0.06);
+    color:#eeeef8; border-bottom-left-radius:4px;
+  }
+  .msg.user{
+    background:linear-gradient(135deg,rgba(124,111,255,0.25),rgba(255,107,157,0.15));
+    border:1px solid rgba(124,111,255,0.25);
+    color:#eeeef8; border-bottom-right-radius:4px;
+  }
+  .msg a{ color:#00e5b8; text-decoration:none; }
+  .msg a:hover{ text-decoration:underline; }
+  .msg-time{
+    font-family:'DM Mono',monospace; font-size:9.5px;
+    color:#444460; margin-top:3px;
+  }
+  .msg-row.user .msg-time{ text-align:right; }
+
+  /* ── TYPING ── */
+  .typing{
+    align-self:flex-start; display:flex; gap:5px;
+    padding:12px 16px; background:#161625;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:14px; border-bottom-left-radius:4px;
+  }
+  .typing span{
+    width:7px; height:7px; border-radius:50%;
+    background:linear-gradient(135deg,#7c6fff,#ff6b9d);
+    animation:typDot 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){ animation-delay:.18s; }
+  .typing span:nth-child(3){ animation-delay:.36s; }
+  @keyframes typDot{ 0%,80%,100%{opacity:.25;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+
+  /* ── CHIPS ── */
+  .ai-chips{
+    display:flex; flex-wrap:nowrap; gap:6px;
+    padding:8px 14px;
+    border-top:1px solid rgba(255,255,255,0.05);
+    overflow-x:auto; overflow-y:hidden;
+    scrollbar-width:none; flex-shrink:0;
+  }
+  .ai-chips::-webkit-scrollbar{ display:none; }
+  .chip{
+    font-family:'DM Mono',monospace; font-size:10.5px;
+    color:#8080a8; background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.07);
+    padding:4px 10px; border-radius:100px;
+    cursor:pointer !important; white-space:nowrap;
+    transition:all .2s; flex-shrink:0;
+  }
+  .chip:hover{
+    background:rgba(124,111,255,0.12);
+    border-color:rgba(124,111,255,0.35);
+    color:#eeeef8;
+  }
+
+  /* ── DATALENS CTA ── */
+  .ai-datalens-cta{
+    margin:0 14px 10px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 14px;
+    background:linear-gradient(135deg,rgba(0,229,184,0.08),rgba(0,229,184,0.03));
+    border:1px solid rgba(0,229,184,0.22);
+    border-radius:12px; text-decoration:none;
+    transition:border-color .2s, transform .2s;
+    cursor:pointer !important;
+  }
+  .ai-datalens-cta:hover{ border-color:#00e5b8; transform:translateY(-1px); }
+  .ai-datalens-cta .dl-text{ display:flex; flex-direction:column; gap:2px; }
+  .ai-datalens-cta .dl-title{
+    font-family:'Syne',sans-serif; font-weight:700; font-size:13px;
+    color:#eeeef8; letter-spacing:-0.2px;
+  }
+  .ai-datalens-cta .dl-sub{
+    font-family:'DM Mono',monospace; font-size:10.5px; color:#8080a8;
+  }
+  .ai-datalens-cta .dl-arrow{
+    width:28px; height:28px; border-radius:50%;
+    background:linear-gradient(135deg,#00e5b8,#00b894);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .ai-datalens-cta .dl-arrow svg{ width:13px; height:13px; }
+
+  /* ── INPUT BAR ── */
+  .ai-inputbar{
+    display:flex; align-items:center; gap:8px;
+    padding:11px 13px;
+    border-top:1px solid rgba(255,255,255,0.06);
+    background:#111120;
+  }
+  .ai-inputbar input{
+    flex:1; background:#161625;
+    border:1px solid rgba(255,255,255,0.07);
+    color:#eeeef8; font-family:'Space Grotesk',sans-serif; font-size:13.5px;
+    padding:10px 13px; border-radius:10px; outline:none;
+    transition:border-color .2s, box-shadow .2s;
+    cursor:text !important;
+  }
+  .ai-inputbar input::placeholder{ color:#444460; }
+  .ai-inputbar input:focus{
+    border-color:rgba(124,111,255,0.5);
+    box-shadow:0 0 0 3px rgba(124,111,255,0.1);
+  }
+  .ai-send{
+    width:38px; height:38px; border-radius:10px; border:none;
+    background:linear-gradient(135deg,#7c6fff,#ff6b9d);
+    cursor:pointer !important;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .2s, opacity .2s; flex-shrink:0;
+    box-shadow:0 4px 14px rgba(124,111,255,0.35);
+  }
+  .ai-send:hover{ transform:translateY(-2px); opacity:0.9; }
+  .ai-send svg{ width:16px; height:16px; }
+
+  .ai-footer-note{
+    text-align:center; font-family:'DM Mono',monospace;
+    font-size:10px; color:#333350; padding:6px 0 9px; letter-spacing:0.04em;
+  }
+
+  @media(prefers-reduced-motion:reduce){ *{ animation-duration:.001ms !important; } }
+  @media(max-width:480px){
+    #ai-panel{ right:12px; left:12px; width:auto; bottom:96px; height:72vh; }
+    #ai-launcher{ right:16px; bottom:16px; }
+  }
+</style>
+
+<!-- LAUNCHER -->
+<div id="ai-launcher" onclick="toggleAIPanel()" title="Ask about Om">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 10.5h.01M12 10.5h.01M16 10.5h.01"/>
+    <path d="M21 12a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.4-5.7A8.38 8.38 0 0 1 3.5 12 8.5 8.5 0 0 1 8.2 4.4a8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+  </svg>
+  <div class="pulse"></div>
+</div>
+
+<!-- PANEL -->
+<div id="ai-panel">
+  <div class="ai-header">
+    <div class="ai-avatar">O</div>
+    <div class="ai-header-text">
+      <div class="name">Ask about Om</div>
+      <div class="status"><span class="dot"></span>Online · Usually replies instantly</div>
+    </div>
+    <button class="ai-close" onclick="toggleAIPanel()">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="ai-messages" id="ai-messages"></div>
+  <div class="ai-chips" id="ai-chips"></div>
+
+  <a class="ai-datalens-cta" id="ai-datalens-cta" target="_blank">
+    <div class="dl-text">
+      <div class="dl-title">⚡ Try DataLens</div>
+      <div class="dl-sub">Analyze any dataset in minutes →</div>
+    </div>
+    <div class="dl-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#07070e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+    </div>
+  </a>
+
+  <div class="ai-inputbar">
+    <input id="ai-input" type="text" placeholder="Ask me anything about my work…"
+      onkeydown="if(event.key==='Enter')sendAIMessage()">
+    <button class="ai-send" onclick="sendAIMessage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+    </button>
+  </div>
+  <div class="ai-footer-note">Ask about skills · projects · availability · contact</div>
+</div>
+
+<script>
+/* =========================================================================
+   PORTFOLIO KNOWLEDGE BASE
+   -------------------------------------------------------------------------
+   Replace every value below with your real information. This is the ONLY
+   section you need to edit — everything else (matching, UI, animations)
+   works automatically once this is filled in.
+   ========================================================================= */
+const PROFILE = {
+  name: "Om Satish Naringe",
+  dob: "14 December 2003",
+  role: "Aspiring Data Analyst",
+  address: "Amravati, Maharashtra, India",
+  location: "Amravati, Maharashtra, India (open to relocation)",
+  email: "omnaringe01@gmail.com",
+  phone: "+91 9421251412",
+  linkedin: "https://www.linkedin.com/in/omnaringe01",
+  github: "https://github.com/omnaringe",
+  portfolio: "https://omnaringe.github.io/cv/",  
+
+  dataLens: {
+    name: "DataLens",
+    tagline: "A tool I built that analyzes data in minutes.",
+    link: "https://omnaringe.github.io/Data-Analyst/"
+  },
+  resumeLink: "Om_CV.pdf",
+
+  intro: "Hey, I'm Om — an aspiring Data Analyst who loves turning raw numbers into clear insights.",
+
+  about: "I'm Om - an aspiring Data Analyst with a strong foundation in SQL, Python, Power BI, and Excel. I enjoy turning messy, complex datasets into clean, actionable insights — from data cleaning and EDA to building interactive dashboards that support real business decisions.",
+
+  skills: {
+    "programming & querying": ["SQL", "Python"],
+    "visualization & bi tools": ["Power BI", "Microsoft Excel"],
+    "database management": ["MySQL"],
+    "python libraries": ["Pandas", "NumPy", "Matplotlib", "Seaborn"],
+    "data analysis": ["Data Cleaning", "Data Transformation", "Exploratory Data Analysis (EDA)"],
+    "power bi": ["DAX", "Power Query", "Data Modeling"],
+    "reporting & analytics": ["Dashboard Development", "KPI Tracking", "Data Visualization"],
+    "version control": ["Git", "GitHub"]
+  },
+
+  experience: [],   // no formal work experience yet — projects speak instead
+
+  projects: [
+    {
+      name: "IPL Analysis Dashboard (2008–2025)",
+      stack: "Power BI, DAX, Excel, SQL",
+      points: [
+        "Developed an interactive Power BI dashboard to analyze 18 IPL seasons (2008–2025) using match and player performance data.",
+        "Built dynamic KPIs for total matches, teams, sixes, fours, centuries, venues, Orange Cap, Purple Cap, season winners, and runners-up.",
+        "Implemented interactive slicers and DAX measures to enable season-wise filtering and real-time insights.",
+        "Designed a professional dashboard with team logos, player visuals, and a points table to improve data storytelling and user experience.",
+        "Performed data cleaning and transformation using Excel and SQL before creating visualizations in Power BI."
+      ]
+    },
+    {
+      name: "Ola Ride Analytics Dashboard",
+      stack: "SQL, Power BI",
+      points: [
+        "Analyzed ride booking data to evaluate booking performance, cancellations, revenue, and customer behavior.",
+        "Wrote SQL queries to identify ride trends, vehicle performance, cancellation patterns, and revenue insights.",
+        "Built interactive Power BI dashboards featuring KPI tracking and ride performance metrics.",
+        "Developed visualizations for booking status analysis, revenue trends, and customer behavior insights.",
+        "Created business reports to support operational and service performance evaluation."
+      ]
+    },
+    {
+      name: "Customer Shopping Behavior Analysis",
+      stack: "Python, SQL, Power BI",
+      points: [
+        "Analyzed 3,900 customer shopping transactions to identify purchasing patterns, customer segments, and revenue trends.",
+        "Cleaned and transformed data using Python (Pandas & NumPy) and performed Exploratory Data Analysis (EDA) for actionable insights.",
+        "Developed 10+ SQL queries to analyze customer behavior, product performance, subscriptions, and sales trends.",
+        "Built an interactive Power BI dashboard with KPI cards, charts, and slicers to present business insights and recommendations."
+      ]
+    }
+  ],
+
+  education: [
+    { degree: "B.E. in Computer Science & Engineering", school: "Sipna College of Engineering and Technology", period: "2022 — 2026 · Graduated" },
+    { degree: "Higher Secondary Certificate (HSC)", school: "", period: "2020 — 2022 · 73%" },
+    { degree: "Secondary School Certificate (SSC)", school: "", period: "2020 · 80%" }
+  ],
+
+  certifications: [
+    "Data Analytics Essentials — Cisco Networking Academy"
+  ],
+
+  publications: [
+    "Indian Sign Language Recognition — ICEMTEC 2026 (research publication)"
+  ],
+
+  languages: ["English", "Hindi", "Marathi"],
+
+  workPreference: "full-time, remote or hybrid",
+
+  strengths: [
+    "I'm detail-oriented — with data, small errors compound fast, so I double-check before I trust a number.",
+    "I'm comfortable owning the full analytics pipeline end-to-end: cleaning, EDA, modeling, and dashboarding.",
+    "I break down complex datasets into something a non-technical stakeholder can actually act on."
+  ],
+
+  weaknesses: [
+    "I'm still building real-world, on-the-job experience since I just graduated — I make up for it by shipping full personal projects rather than tutorials.",
+    "I sometimes spend a bit too long polishing a dashboard's visuals before moving on — I've been actively working on timeboxing that."
+  ],
+
+  funFact: "I like digging through real-world datasets — like 18 seasons of IPL data — to find the story hiding in the numbers.",
+
+  availability: "Just graduated and actively looking for full-time Data Analyst roles — open to remote or hybrid, and open to relocation."
+};
+
+/* Suggested question chips shown to the visitor */
+const SUGGESTED = [
+  "What are your skills?",
+  "Tell me about your projects",
+  "What's your education?",
+  "Are you available to hire?"
+];
+
+/* =========================================================================
+   MATCHING ENGINE — simple, transparent keyword/intent matching.
+   No external calls, nothing to configure.
+   ========================================================================= */
+const INTENTS = [
+  {
+    tag: "greeting",
+    patterns: ["hi", "hello", "hey", "yo", "hii", "sup"],
+    reply: () => `Hey! Good to see you here. Ask me about my skills, projects, or how to reach me — happy to chat.`
+  },
+  {
+    tag: "dob",
+    patterns: ["dob", "date of birth", "birthday", "birth date", "born", "how old", "your age"],
+    reply: () => `I was born on ${PROFILE.dob}.`
+  },
+  {
+    tag: "fullname",
+    patterns: ["full name", "complete name", "your full"],
+    reply: () => `My full name is ${PROFILE.name}.`
+  },
+  {
+    tag: "address",
+    patterns: ["address", "where do you live", "residence", "hometown"],
+    reply: () => `I live in ${PROFILE.address}.`
+  },
+  {
+    tag: "about",
+    patterns: ["about you", "who are you", "who is", "introduce", "yourself"],
+    reply: () => PROFILE.about
+  },
+  {
+    tag: "skills",
+    patterns: ["skill", "tech stack", "technologies", "programming language", "tools", "stack"],
+    reply: () => {
+      const lines = Object.entries(PROFILE.skills)
+        .map(([cat, items]) => `<b style="color:#00e5b8;text-transform:capitalize">${cat}</b> — ${items.join(", ")}`);
+      return `Here's what I work with:<br><br>${lines.join("<br>")}`;
+    }
+  },
+  {
+    tag: "experience",
+    patterns: ["experience", "work history", "job", "worked", "career", "background"],
+    reply: () => {
+      if(!PROFILE.experience.length){
+        return `I don't have formal work experience yet — I just graduated — but I've built several end-to-end data analytics projects that show how I work with real data. Ask me about my <b style="color:#00e5b8">projects</b> to see them.`;
+      }
+      return PROFILE.experience.map(e =>
+        `<b style="color:#00e5b8">${e.title}</b> @ ${e.company} <span style="color:#8080a8">(${e.period})</span><br>${e.highlights}`
+      ).join("<br><br>");
+    }
+  },
+  {
+    tag: "strengths",
+    patterns: ["strength", "good at", "best skill", "strong at"],
+    reply: () => PROFILE.strengths.map(s => `• ${s}`).join("<br>")
+  },
+  {
+    tag: "weaknesses",
+    patterns: ["weakness", "weak at", "area of improvement", "improve on"],
+    reply: () => PROFILE.weaknesses.map(w => `• ${w}`).join("<br>")
+  },
+  {
+    tag: "languages",
+    patterns: ["language", "languages spoken", "speak"],
+    reply: () => `I speak ${PROFILE.languages.join(", ")}.`
+  },
+  {
+    tag: "status",
+    patterns: ["fresher", "graduate", "graduated", "fresh graduate", "student"],
+    reply: () => `I've just graduated with my B.E. in Computer Science & Engineering from Sipna College. I'm a fresher in terms of formal work experience, but I've built full end-to-end analytics projects to back it up.`
+  },
+  {
+    tag: "workpref",
+    patterns: ["remote", "hybrid", "work mode", "onsite", "on-site", "work from home", "wfh"],
+    reply: () => `I'm looking for ${PROFILE.workPreference} roles.`
+  },
+  {
+    tag: "certifications",
+    patterns: ["certification", "certificate", "certified", "course"],
+    reply: () => `I've picked up ${PROFILE.certifications.join(", ")} so far.`
+  },
+  {
+    tag: "publications",
+    patterns: ["publication", "research", "paper", "published"],
+    reply: () => `Yeah, I've actually got a research paper out — ${PROFILE.publications.join(", ")}.`
+  },
+  {
+    tag: "projects",
+    patterns: ["project", "built", "showcase", "made", "work you"],
+    reply: () => PROFILE.projects.map(p =>
+      `<b style="color:#00e5b8">${p.name}</b><br>` +
+      p.points.map(pt => `• ${pt}`).join("<br>") +
+      `<br><span style="color:#8080a8">Stack: ${p.stack}</span>`
+    ).join("<br><br>")
+  },
+  {
+    tag: "education",
+    patterns: ["education", "degree", "college", "university", "study", "studied"],
+    reply: () => PROFILE.education.map(e => e.school ? `${e.degree} — ${e.school} (${e.period})` : `${e.degree} (${e.period})`).join("<br>")
+  },
+  {
+    tag: "linkedin",
+    patterns: ["linkedin", "linked in"],
+    reply: () => `Here's my LinkedIn — <a href="${PROFILE.linkedin}" target="_blank">${PROFILE.linkedin}</a>`
+  },
+  {
+    tag: "github",
+    patterns: ["github", "git hub", "repo", "repositories"],
+    reply: () => `Here's my GitHub — <a href="${PROFILE.github}" target="_blank">${PROFILE.github}</a>`
+  },
+  {
+    tag: "portfolio-link",
+    patterns: ["portfolio link", "portfolio site", "personal website", "your website"],
+    reply: () => PROFILE.portfolio && PROFILE.portfolio !== "#"
+      ? `Here's my portfolio — <a href="${PROFILE.portfolio}" target="_blank">${PROFILE.portfolio}</a>`
+      : `You're on it right now 🙂 If you meant my data tool, ask about <b style="color:#00e5b8">DataLens</b>.`
+  },
+  {
+    tag: "datalens",
+    patterns: ["datalens", "data lens", "analyze data", "live demo", "live tool"],
+    reply: () => `Check out <b style="color:#00e5b8">${PROFILE.dataLens.name}</b> — ${PROFILE.dataLens.tagline} You'll find a button for it right below this chat.`
+  },
+  {
+    tag: "contact",
+    patterns: ["contact", "email", "reach", "phone", "number", "connect", "get in touch"],
+    reply: () => `You can reach me at <a href="mailto:${PROFILE.email}">${PROFILE.email}</a> or call ${PROFILE.phone}. I'm also on <a href="${PROFILE.linkedin}" target="_blank">LinkedIn</a> and <a href="${PROFILE.github}" target="_blank">GitHub</a>.`
+  },
+  {
+    tag: "hire",
+    patterns: ["hire", "why should", "why hire", "why you"],
+    reply: () => `I bring a strong foundation in SQL, Python, and Power BI, with hands-on experience turning raw datasets into clear, decision-ready dashboards. I'm detail-oriented, comfortable with the full analytics pipeline — cleaning, EDA, and visualization — and eager to bring that to a real business problem. Happy to walk through any of my projects in an interview.<br><br>If you're seriously considering this, the fastest way to reach me is the <a href="#contact">contact form ↓</a> — I check it personally.`
+  },
+  {
+    tag: "opportunity",
+    patterns: ["job offer", "opportunity", "role for you", "open position", "interested in hiring", "recruit", "position available", "vacancy", "would love to hire", "want to hire", "hiring you", "offer you a"],
+    reply: () => {
+      notifyOm("Someone may be offering a role / opportunity.");
+      return `That's great to hear! 🎉 The best way forward is through my <a href="#contact">contact form</a> just below — fill in your details and I'll personally get back to you.`;
+    }
+  },
+  {
+    tag: "resume",
+    patterns: ["resume", "cv", "download"],
+    reply: () => `You can download my full resume here → <a href="${PROFILE.resumeLink}" target="_blank">${PROFILE.resumeLink}</a>`
+  },
+  {
+    tag: "availability",
+    patterns: ["available", "hiring", "open to work", "freelance", "looking for"],
+    reply: () => PROFILE.availability
+  },
+  {
+    tag: "location",
+    patterns: ["located", "based", "live", "location", "where are you"],
+    reply: () => `I'm based in ${PROFILE.location}.`
+  },
+  {
+    tag: "funfact",
+    patterns: ["fun fact", "hobby", "hobbies", "free time", "interesting"],
+    reply: () => PROFILE.funFact
+  },
+  {
+    tag: "thanks",
+    patterns: ["thank", "thanks", "appreciate", "cool", "nice", "great"],
+    reply: () => `You're welcome! Anything else you'd like to know — skills, projects, or how to reach me?`
+  }
+];
+
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function matchIntent(userText){
+  const text = userText.toLowerCase();
+  let best = null, bestScore = 0;
+  for(const intent of INTENTS){
+    for(const p of intent.patterns){
+      const re = new RegExp('\\b' + escapeRegex(p) + 's?\\b');
+      if(re.test(text)){
+        const score = p.length;
+        if(score > bestScore){ bestScore = score; best = intent; }
+      }
+    }
+  }
+  return best;
+}
+
+function fallbackReply(){
+  return `Hmm, not sure I caught that. Try asking about my <b style="color:#00e5b8">skills</b>, <b style="color:#00e5b8">projects</b>, or <b style="color:#00e5b8">education</b> — or just email me directly at <a href="mailto:${PROFILE.email}">${PROFILE.email}</a>.`;
+}
+
+/* =========================================================================
+   ANALYTICS — anonymous, no personal data collected.
+   Uses countapi.xyz (free, keyless) to keep a running count of bot opens
+   and which topics visitors ask about most. Check counts anytime by
+   visiting, e.g.:
+   https://api.countapi.xyz/get/om-portfolio-bot/opens
+   https://api.countapi.xyz/get/om-portfolio-bot/asked-projects
+   ========================================================================= */
+function trackEvent(key){
+  fetch(`https://api.countapi.xyz/hit/om-portfolio-bot/${key}`).catch(()=>{});
+}
+
+/* =========================================================================
+   LEAD ALERT — emails Om instantly (via Web3Forms) when a visitor signals
+   they're offering a job/opportunity, so he never misses a real lead.
+   Reuses the same Web3Forms access key as the main contact form.
+   ========================================================================= */
+function notifyOm(context){
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      access_key: 'a2f7d3f4-1c27-4609-8b2e-f0ccfa4a6991',
+      subject: '🎯 Chatbot lead — someone may want to hire you!',
+      from_name: 'Portfolio AI Assistant',
+      email: PROFILE.email,
+      message: `${context}\n\nPage: ${window.location.href}\nTime: ${new Date().toLocaleString()}`,
+      botcheck: ''
+    })
+  }).catch(()=>{});
+}
+
+/* =========================================================================
+   UI WIRING
+   ========================================================================= */
+let panelOpened = false;
+
+document.getElementById('ai-datalens-cta').href = PROFILE.dataLens.link;
+
+function toggleAIPanel(){
+  const panel = document.getElementById('ai-panel');
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open') && !panelOpened){
+    panelOpened = true;
+    trackEvent('opens');
+    renderChips();
+    pushBotMessage(PROFILE.intro);
+  }
+}
+
+function timeNow(){
+  const d = new Date();
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function pushMessage(html, sender){
+  const container = document.getElementById('ai-messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${sender}`;
+  row.innerHTML = `<div class="msg ${sender}">${html}</div><div class="msg-time">${timeNow()}</div>`;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
+function pushBotMessage(html){
+  const container = document.getElementById('ai-messages');
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(typing);
+  container.scrollTop = container.scrollHeight;
+
+  const delay = 450 + Math.random()*400;
+  setTimeout(() => {
+    typing.remove();
+    pushMessage(html, 'bot');
+  }, delay);
+}
+
+function renderChips(){
+  const chipBar = document.getElementById('ai-chips');
+  chipBar.innerHTML = '';
+  SUGGESTED.forEach(q => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = q;
+    chip.onclick = () => { document.getElementById('ai-input').value = q; sendAIMessage(); };
+    chipBar.appendChild(chip);
+  });
+}
+
+function sendAIMessage(){
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if(!text) return;
+  // Hide chips after first interaction to maximise message area
+  const chips = document.getElementById('ai-chips');
+  if(chips) chips.style.display = 'none';
+  pushMessage(text.replace(/</g,"&lt;"), 'user');
+  input.value = '';
+
+  const intent = matchIntent(text);
+  const reply = intent ? intent.reply() : fallbackReply();
+  trackEvent(intent ? `asked-${intent.tag}` : 'asked-unmatched');
+  pushBotMessage(reply);
+}
+
+
+/* Basic source-view deterrents — cosmetic only, does not truly hide code */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (e.key === 'F12') e.preventDefault();
+  if (e.ctrlKey && k === 'u') e.preventDefault();
+  if (e.ctrlKey && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')) e.preventDefault();
+});
+</script>
+
 </body>
-</html>
